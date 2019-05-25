@@ -1,12 +1,14 @@
 import React from "react";
 // import io from "socket.io-client";
 import DeckGL, { IconLayer } from "deck.gl";
-import { StaticMap } from "react-map-gl";
+import ReactMapGL from "react-map-gl";
+
 import iconMapJson from "./location-icon-mapping.json";
 import iconMapPng from "./location-icon-atlas.png";
 import IconClusterLayer from "./iconClusterLayer";
-import Tooltip from "./components/Tooltip";
-import ExtendedTooltip from "./components/ExtendedTooltip";
+
+import { StyledChatBoxPopup } from "./StyledComponents";
+import ChatBox from "../Chat/ChatBox";
 
 function getRandomInRange(from, to, fixed) {
   return (Math.random() * (to - from) + from).toFixed(fixed) * 1;
@@ -18,20 +20,22 @@ const TOKEN =
 
 // Initial viewport settings
 const initialViewState = {
-  longitude: -122.41669,
-  latitude: 37.7853,
-  zoom: 13,
+  longitude: 29.002252,
+  latitude: 41.025715,
+  zoom: 11,
   pitch: 0,
   bearing: 0
 };
 
-export default class Map2 extends React.Component {
+export default class Map extends React.Component {
   state = {
     x: 0,
     y: 0,
     hoveredItems: null,
     expanded: false,
-    pins: []
+    pins: [],
+    isChatBoxVisible: false,
+    selectedMessages: []
   };
 
   componentDidMount() {
@@ -71,8 +75,8 @@ export default class Map2 extends React.Component {
       ];
 
       const socketData = {
-        latitude: getRandomInRange(-90, 90, 3),
-        longitude: getRandomInRange(-180, 180, 3),
+        longitude: getRandomInRange(28.6, 29.1, 3),
+        latitude: getRandomInRange(41.1, 40.9, 3),
         user: dummyUsers[Math.floor(Math.random() * dummyUsers.length)],
         content: {
           text:
@@ -96,9 +100,9 @@ export default class Map2 extends React.Component {
         ...socketData
       };
       this.setState(prevstate => {
-        if (prevstate.pins.length > 200) {
-          prevstate.pins.shift();
-        }
+        // if (prevstate.pins.length > 200) {
+        //   prevstate.pins.shift();
+        // }
         return {
           pins: [...prevstate.pins, { ...newPin }]
         };
@@ -130,30 +134,46 @@ export default class Map2 extends React.Component {
     this.setState({ x, y, hoveredItems, expanded: false });
   };
 
-  _onClick = () => {
-    this.setState({ expanded: true });
+  _onClick = info => {
+    console.log("_onClick");
+    console.log(info);
+
+    const { x, y, object, lngLat } = info;
+    const z = info.layer.state.z;
+    const { showCluster = true } = this.props;
+
+    let selectedMessages = null;
+    if (object) {
+      if (showCluster) {
+        selectedMessages = object.zoomLevels[z].points.sort(
+          (m1, m2) => m1.year - m2.year
+        );
+      } else {
+        selectedMessages = [object];
+      }
+    }
+
+    this.setState({
+      isChatBoxVisible: true,
+      chatBoxPosition: { x, y },
+      chatBoxGeolocation: lngLat,
+      lngLat: lngLat,
+      selectedMessages
+    });
   };
 
   _closePopup = () => {
     this.setState({ expanded: false, hoveredItems: null });
   };
 
-  _renderhoveredItems = () => {
-    const { x, y, hoveredItems, expanded } = this.state;
-    if (!hoveredItems) {
-      return null;
-    }
-    return expanded ? (
-      <ExtendedTooltip
-        x={x}
-        y={y}
-        hoveredItems={hoveredItems}
-        ref={this._onPopupLoad}
-        onMouseLeave={this._closePopup}
-      />
-    ) : (
-      <Tooltip x={x} y={y} hoveredItems={hoveredItems} />
-    );
+  _onChatBoxClose = () => {
+    console.log("_onChatBoxClose");
+    this.setState({
+      isChatBoxVisible: false,
+      chatBoxPosition: {},
+      chatBoxGeolocation: [],
+      selectedPins: []
+    });
   };
 
   _renderLayers = () => {
@@ -172,7 +192,7 @@ export default class Map2 extends React.Component {
       getPosition: d => d.coordinates,
       iconAtlas,
       iconMapping,
-      onHover: this._onHover,
+      // onHover: this._onHover,
       onClick: this._onClick,
       sizeScale: 60
     };
@@ -194,25 +214,43 @@ export default class Map2 extends React.Component {
   };
 
   render() {
-    const { viewState, controller = true, baseMap = true } = this.props;
+    const { controller = true, baseMap = true } = this.props;
+    const {
+      isChatBoxVisible,
+      chatBoxGeolocation,
+      selectedMessages
+    } = this.state;
 
     return (
       <DeckGL
         initialViewState={initialViewState}
         controller={controller}
         layers={this._renderLayers()}
-        viewState={viewState}
       >
         {baseMap && (
-          <StaticMap
+          <ReactMapGL
             mapboxApiAccessToken={TOKEN}
             euseMaps
             mapStyle="mapbox://styles/mapbox/dark-v9"
             preventStyleDiffing={true}
-          />
+          >
+            {isChatBoxVisible && (
+              <StyledChatBoxPopup
+                longitude={chatBoxGeolocation[0]}
+                latitude={chatBoxGeolocation[1]}
+                closeButton={false}
+                closeOnClick={false}
+                onClose={e => console.log(e)}
+                anchor="bottom"
+              >
+                <ChatBox
+                  messages={selectedMessages}
+                  onClose={this._onChatBoxClose}
+                />
+              </StyledChatBoxPopup>
+            )}
+          </ReactMapGL>
         )}
-
-        {this._renderhoveredItems}
       </DeckGL>
     );
   }

@@ -4,23 +4,43 @@ import {
   Message,
   MessageList,
   MessageText,
-  Row,
-  Avatar
+  Avatar,
+  TitleBar,
+  IconButton,
+  CloseIcon
 } from "@livechat/ui-kit";
 
-export default function ChatBox({ messages }) {
+import { ChatBoxWrapper, MessageRow } from "./StyledComponents";
+
+import { theme } from "./theme";
+import { dummyMessages } from "./dummyMessages";
+
+export default function ChatBox({
+  messages = dummyMessages,
+  onClose = () => {}
+}) {
   return (
-    <ThemeProvider>
-      <MessageList active>
-        {messages.map((message, index) => (
-          <Row key={index}>
-            <Avatar imgUrl={message.user.avatar} />
-            <Message authorName={message.user.name} date={message.date}>
-              <MessageText>{message.content.text}</MessageText>
-            </Message>
-          </Row>
-        ))}
-      </MessageList>
-    </ThemeProvider>
+    <ChatBoxWrapper>
+      <ThemeProvider theme={theme}>
+        <TitleBar
+          title="Chat with us!"
+          rightIcons={[
+            <IconButton key="close">
+              <CloseIcon onClick={onClose} />
+            </IconButton>
+          ]}
+        />
+        <MessageList active>
+          {messages.map((message, index) => (
+            <MessageRow key={index}>
+              <Avatar imgUrl={message.user.avatar} />
+              <Message authorName={message.user.name} date={message.date}>
+                <MessageText>{message.content.text}</MessageText>
+              </Message>
+            </MessageRow>
+          ))}
+        </MessageList>
+      </ThemeProvider>
+    </ChatBoxWrapper>
   );
 }
