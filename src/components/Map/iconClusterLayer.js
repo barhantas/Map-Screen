@@ -73,7 +73,7 @@ export default class IconClusterLayer extends CompositeLayer {
         iconMapping,
         sizeScale,
         getPosition,
-        getIcon: d => { console.log(d,z); return (d.zoomLevels[z] && d.zoomLevels[z].icon)},
+        getIcon: d => d.zoomLevels[z] && d.zoomLevels[z].icon,
         getSize: d => d.zoomLevels[z] && d.zoomLevels[z].size,
         onHover,
         onClick,

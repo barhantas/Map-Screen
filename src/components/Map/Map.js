@@ -88,52 +88,20 @@ export default class Map extends React.Component {
     let ref = firebase
       .database()
       .ref("/Messages")
-      .orderByChild("date0");
-    let arr = [];
-    ref.on("value", snapshot => {
-      snapshot.forEach(childSnapshot => {
-        var childData = childSnapshot.val();
-        arr.push(childData);
-      });
-      console.log("datagelsi")
-      this.setState({ pins: arr });
-    });
+      .orderByChild("date");
 
-    // setInterval(() => {
-    //   const socketData = {
-    //     longitude: getRandomInRange(28.6, 29.1, 3),
-    //     latitude: getRandomInRange(41.1, 40.9, 3),
-    //     user: dummyUsers[Math.floor(Math.random() * dummyUsers.length)],
-    //     content: {
-    //       text:
-    //         Math.random()
-    //           .toString(36)
-    //           .substring(7) +
-    //         Math.random()
-    //           .toString(36)
-    //           .substring(7) +
-    //         Math.random()
-    //           .toString(36)
-    //           .substring(7)
-    //     },
-    //     date: new Date()
-    //       .toISOString()
-    //       .replace(/T/, " ")
-    //       .replace(/\..+/, "")
-    //   };
-    //   const newPin = {
-    //     coordinates: [socketData.longitude, socketData.latitude],
-    //     ...socketData
-    //   };
-    //   this.setState(prevstate => {
-    //     // if (prevstate.pins.length > 200) {
-    //     //   prevstate.pins.shift();
-    //     // }
-    //     return {
-    //       pins: [...prevstate.pins, { ...newPin }]
-    //     };
-    //   });
-    // }, 500);
+    ref.on("value", snapshot => {
+      const messageObject = snapshot.val();
+      if (messageObject) {
+        const messageList = Object.keys(messageObject).map(key => ({
+          ...messageObject[key],
+          uid: key
+        }));
+        this.setState({
+          pins: messageList
+        });
+      }
+    });
   }
 
   _onClick = info => {
@@ -225,12 +193,13 @@ export default class Map extends React.Component {
     });
   };
 
-  _sendMessage =  messageText => {
+  _sendMessage = messageText => {
     const {
       messageMarkerGeolocation: { longitude, latitude },
       messageMarkerGeolocation
     } = this.state;
-     firebase
+    console.log(messageMarkerGeolocation)
+    firebase
       .database()
       .ref("/Messages")
       .push({
@@ -243,14 +212,6 @@ export default class Map extends React.Component {
           .replace(/\..+/, ""),
         user: dummyUsers[Math.floor(Math.random() * dummyUsers.length)]
       });
-    // .set({
-    //   text: messageText,
-    //   geolocation: messageMarkerGeolocation,
-    //   date: new Date()
-    //     .toISOString()
-    //     .replace(/T/, " ")
-    //     .replace(/\..+/, "")
-    // });
     this.setState({
       isMessageMarkerVisible: false
     });
@@ -296,7 +257,7 @@ export default class Map extends React.Component {
                 closeButton={false}
                 closeOnClick={false}
                 // onClose={e => console.log(e)}
-                onClose={()=>{}}
+                onClose={() => {}}
                 anchor="bottom"
               >
                 <ChatBox

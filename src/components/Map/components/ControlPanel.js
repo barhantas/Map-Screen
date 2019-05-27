@@ -23,8 +23,6 @@ const ControlPanelWrapper = styled.div`
   top: 0;
   right: 0;
   max-width: 320px;
-  background: #fff;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
   padding: 12px 24px;
   margin: 20px;
   font-size: 13px;
