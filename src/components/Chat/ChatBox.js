@@ -31,14 +31,22 @@ export default function ChatBox({
           ]}
         />
         <MessageList active>
-          {messages.map((message, index) => (
-            <MessageRow key={index}>
-              <Avatar imgUrl={message.user.avatar} />
-              <Message authorName={message.user.name} date={message.date}>
-                <MessageText>{message.content.text}</MessageText>
-              </Message>
-            </MessageRow>
-          ))}
+          {messages.map(
+            (
+              message = {
+                user: { name: "no-name", avatar: "no-avatar" },
+                content: { text: "no-text" }
+              },
+              index
+            ) => (
+              <MessageRow key={index}>
+                <Avatar imgUrl={message.user.avatar} />
+                <Message authorName={message.user.name} date={message.date}>
+                  <MessageText>{message.content.text}</MessageText>
+                </Message>
+              </MessageRow>
+            )
+          )}
         </MessageList>
       </ThemeProvider>
     </ChatBoxWrapper>

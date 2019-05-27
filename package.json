@@ -5,6 +5,7 @@
   "dependencies": {
     "@livechat/ui-kit": "^0.4.0-5",
     "deck.gl": "^7.0.9",
+    "firebase": "^6.0.4",
     "firebase-tools": "^6.7.2",
     "rbush": "^2.0.1",
     "react": "^16.8.6",
@@ -12,6 +13,7 @@
     "react-map-gl": "^4.1.2",
     "react-router-dom": "^5.0.0",
     "react-scripts": "3.0.0",
+    "reactstrap": "^8.0.0",
     "socket.io-client": "^2.2.0",
     "styled-components": "^4.2.0"
   },
